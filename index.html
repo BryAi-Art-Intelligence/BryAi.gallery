@@ -9,7 +9,7 @@
   html, body {
     margin: 0;
     width: 100%;
-    min-height: 100%;
+    height: 100%;
     background: #000;
     overflow: hidden;
   }
@@ -19,8 +19,13 @@
     height: 100dvh;
 
     background-image: url("0193C3B9-9B64-44D3-9C19-D70B80BED6D0.png");
-    background-size: cover;
-    background-position: center calc(50% + 25px);
+
+    /* show the full width — no horizontal cropping */
+    background-size: 100% auto;
+
+    /* put the floor directly against the bottom */
+    background-position: center bottom;
+
     background-repeat: no-repeat;
   }
 </style>
