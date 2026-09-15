@@ -24,6 +24,7 @@
     background-repeat: no-repeat;
 
     position: relative;
+    cursor: pointer;
   }
 
   #overlay {
@@ -36,6 +37,12 @@
     object-fit: contain;
 
     pointer-events: none;
+
+    opacity: 1;
+  }
+
+  #overlay.off {
+    opacity: 0;
   }
 </style>
 </head>
@@ -47,6 +54,14 @@
     src="2E5D1439-E9F1-4D73-A2F7-5C78DEB2036C.png"
     alt=""
   >
+
+<script>
+  const overlay = document.getElementById("overlay");
+
+  document.body.addEventListener("click", () => {
+    overlay.classList.toggle("off");
+  });
+</script>
 
 </body>
 </html>
