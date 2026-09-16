@@ -25,12 +25,14 @@
 
     position: relative;
     cursor: pointer;
-
-    /* Makes horizontal swipe handling cleaner on phone */
     touch-action: pan-y;
   }
 
-  /* ORIGINAL OVERLAY */
+
+  /* =========================
+     ORIGINAL LIGHT OVERLAY
+     ========================= */
+
   #overlay {
     position: absolute;
     inset: 0;
@@ -43,6 +45,8 @@
     pointer-events: none;
 
     opacity: 1;
+
+    z-index: 2;
   }
 
   #overlay.off {
@@ -50,7 +54,10 @@
   }
 
 
-  /* NEW SWIPE IMAGE */
+  /* =========================
+     OUTSIDE
+     ========================= */
+
   #outside {
     position: absolute;
     inset: 0;
@@ -66,19 +73,48 @@
 
     transition: opacity 1.2s ease;
 
-    /* Places it above the existing scene */
     z-index: 10;
   }
 
   #outside.show {
     opacity: 1;
   }
+
+
+  /* =========================
+     LIGHT PIECE ON OUTSIDE
+     ========================= */
+
+  #outsideLight {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+
+    pointer-events: none;
+
+    opacity: 0;
+
+    transition: opacity 0.8s ease;
+
+    z-index: 20;
+  }
+
+  #outsideLight.show {
+    opacity: 1;
+  }
+
 </style>
 </head>
 
+
 <body>
 
-  <!-- ORIGINAL IMAGE — UNCHANGED -->
+
+  <!-- ORIGINAL LIGHT PIECE -->
   <img
     id="overlay"
     src="2E5D1439-E9F1-4D73-A2F7-5C78DEB2036C.png"
@@ -86,7 +122,7 @@
   >
 
 
-  <!-- NEW OUTSIDE IMAGE -->
+  <!-- OUTSIDE BOKEH -->
   <img
     id="outside"
     src="ABDDFA3C-1114-4285-84C8-B11000BFE007.png"
@@ -94,74 +130,179 @@
   >
 
 
+  <!-- SAME LIGHT PIECE,
+       NOW ALSO AVAILABLE OUTSIDE -->
+  <img
+    id="outsideLight"
+    src="2E5D1439-E9F1-4D73-A2F7-5C78DEB2036C.png"
+    alt=""
+  >
+
+
 <script>
-  const overlay = document.getElementById("overlay");
-  const outside = document.getElementById("outside");
+
+  const overlay =
+    document.getElementById("overlay");
+
+  const outside =
+    document.getElementById("outside");
+
+  const outsideLight =
+    document.getElementById("outsideLight");
+
 
   let startX = 0;
   let startY = 0;
   let moved = false;
 
 
-  /* ORIGINAL CLICK FUNCTION */
+  /* =========================
+     TAP
+     ========================= */
+
   document.body.addEventListener("click", () => {
 
-    /* Don't trigger click after a swipe */
+    /*
+      Prevent the swipe from
+      accidentally becoming a tap.
+    */
+
     if (moved) {
       moved = false;
       return;
     }
 
-    /* Only toggle original overlay
-       when outside image isn't showing */
-    if (!outside.classList.contains("show")) {
-      overlay.classList.toggle("off");
+
+    /*
+      IF WE ARE OUTSIDE:
+
+      Tap controls the light artwork
+      ABOVE the bokeh image.
+    */
+
+    if (outside.classList.contains("show")) {
+
+      outsideLight.classList.toggle("show");
+
+      return;
     }
+
+
+    /*
+      IF WE ARE INSIDE:
+
+      Preserve the original
+      tap behavior.
+    */
+
+    overlay.classList.toggle("off");
+
   });
 
 
-  /* SWIPE START */
-  document.body.addEventListener("touchstart", (e) => {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    moved = false;
-  }, { passive: true });
+
+  /* =========================
+     SWIPE START
+     ========================= */
+
+  document.body.addEventListener(
+    "touchstart",
+    (e) => {
+
+      startX =
+        e.touches[0].clientX;
+
+      startY =
+        e.touches[0].clientY;
+
+      moved = false;
+
+    },
+    { passive: true }
+  );
 
 
-  /* SWIPE END */
-  document.body.addEventListener("touchend", (e) => {
 
-    const endX = e.changedTouches[0].clientX;
-    const endY = e.changedTouches[0].clientY;
+  /* =========================
+     SWIPE END
+     ========================= */
 
-    const deltaX = endX - startX;
-    const deltaY = endY - startY;
+  document.body.addEventListener(
+    "touchend",
+    (e) => {
 
-    /* Ignore tiny movements */
-    if (Math.abs(deltaX) < 50) {
-      return;
-    }
+      const endX =
+        e.changedTouches[0].clientX;
 
-    /* Make sure it was mostly horizontal */
-    if (Math.abs(deltaX) <= Math.abs(deltaY)) {
-      return;
-    }
-
-    moved = true;
+      const endY =
+        e.changedTouches[0].clientY;
 
 
-    /* SWIPE RIGHT */
-    if (deltaX > 0) {
-      outside.classList.add("show");
-    }
+      const deltaX =
+        endX - startX;
+
+      const deltaY =
+        endY - startY;
 
 
-    /* SWIPE LEFT */
-    if (deltaX < 0) {
-      outside.classList.remove("show");
-    }
+      /*
+        Ignore tiny movements.
+      */
 
-  }, { passive: true });
+      if (Math.abs(deltaX) < 50) {
+        return;
+      }
+
+
+      /*
+        Only accept mostly
+        horizontal movement.
+      */
+
+      if (
+        Math.abs(deltaX) <=
+        Math.abs(deltaY)
+      ) {
+        return;
+      }
+
+
+      moved = true;
+
+
+      /* =====================
+         SWIPE RIGHT
+         GO OUTSIDE
+         ===================== */
+
+      if (deltaX > 0) {
+
+        outside.classList.add("show");
+
+      }
+
+
+      /* =====================
+         SWIPE LEFT
+         GO BACK INSIDE
+         ===================== */
+
+      if (deltaX < 0) {
+
+        outside.classList.remove("show");
+
+        /*
+          Reset the outside artwork
+          so next visit begins clean.
+        */
+
+        outsideLight.classList.remove("show");
+
+      }
+
+    },
+    { passive: true }
+  );
 
 </script>
 
