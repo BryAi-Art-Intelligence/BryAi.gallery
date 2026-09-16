@@ -25,8 +25,12 @@
 
     position: relative;
     cursor: pointer;
+
+    /* Makes horizontal swipe handling cleaner on phone */
+    touch-action: pan-y;
   }
 
+  /* ORIGINAL OVERLAY */
   #overlay {
     position: absolute;
     inset: 0;
@@ -44,23 +48,121 @@
   #overlay.off {
     opacity: 0;
   }
+
+
+  /* NEW SWIPE IMAGE */
+  #outside {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    pointer-events: none;
+
+    opacity: 0;
+
+    transition: opacity 1.2s ease;
+
+    /* Places it above the existing scene */
+    z-index: 10;
+  }
+
+  #outside.show {
+    opacity: 1;
+  }
 </style>
 </head>
 
 <body>
 
+  <!-- ORIGINAL IMAGE — UNCHANGED -->
   <img
     id="overlay"
     src="2E5D1439-E9F1-4D73-A2F7-5C78DEB2036C.png"
     alt=""
   >
 
+
+  <!-- NEW OUTSIDE IMAGE -->
+  <img
+    id="outside"
+    src="ABDDFA3C-1114-4285-84C8-B11000BFE007.png"
+    alt=""
+  >
+
+
 <script>
   const overlay = document.getElementById("overlay");
+  const outside = document.getElementById("outside");
 
+  let startX = 0;
+  let startY = 0;
+  let moved = false;
+
+
+  /* ORIGINAL CLICK FUNCTION */
   document.body.addEventListener("click", () => {
-    overlay.classList.toggle("off");
+
+    /* Don't trigger click after a swipe */
+    if (moved) {
+      moved = false;
+      return;
+    }
+
+    /* Only toggle original overlay
+       when outside image isn't showing */
+    if (!outside.classList.contains("show")) {
+      overlay.classList.toggle("off");
+    }
   });
+
+
+  /* SWIPE START */
+  document.body.addEventListener("touchstart", (e) => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    moved = false;
+  }, { passive: true });
+
+
+  /* SWIPE END */
+  document.body.addEventListener("touchend", (e) => {
+
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
+
+    /* Ignore tiny movements */
+    if (Math.abs(deltaX) < 50) {
+      return;
+    }
+
+    /* Make sure it was mostly horizontal */
+    if (Math.abs(deltaX) <= Math.abs(deltaY)) {
+      return;
+    }
+
+    moved = true;
+
+
+    /* SWIPE RIGHT */
+    if (deltaX > 0) {
+      outside.classList.add("show");
+    }
+
+
+    /* SWIPE LEFT */
+    if (deltaX < 0) {
+      outside.classList.remove("show");
+    }
+
+  }, { passive: true });
+
 </script>
 
 </body>
